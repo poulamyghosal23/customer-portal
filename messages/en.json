@@ -1,0 +1,27 @@
+{
+  "header": {
+    "search": "Search",
+    "location": "Location",
+    "messages": "Messages",
+    "myBookings": "My Bookings",
+    "paymentMethods": "Payment Methods",
+    "myTeam": "My Team",
+    "profile": "Profile",
+    "helpCenter": "Help Center",
+    "tools": "Tools",
+    "becomeAHost": "Become a Host",
+    "logOut": "Log out"
+  },
+  "homePage": {
+    "title": "Search Results",
+    "loadingMore": "Loading more spaces...",
+    "noMoreSpaces": "No more spaces to load"
+  },
+  "spaceCard": {
+    "from": "From",
+    "perHour": "/hr",
+    "instantBook": "Instant Book",
+    "requestBooking": "Request Booking"
+  }
+}
+
