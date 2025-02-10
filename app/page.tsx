@@ -117,11 +117,13 @@ function HomePage() {
         const operatingHours = `${formatTime(space.venue.accessHoursFrom)} - ${formatTime(space.venue.accessHoursTo)}`
         const spotsLeft = calculateSpotsLeft(space)
         console.log("Calculated spots left returned: ", spotsLeft)
+        const currency = space.venue.currency || 'USD'
         return {
           ...space,
           distance: isNaN(distance) ? 0 : distance,
           operatingHours,
-          spotsLeft
+          spotsLeft,
+          currency
         }
       })
       const totalCount = data.total
@@ -372,6 +374,7 @@ function HomePage() {
                         operatingHours={space.operatingHours}
                         rating={Number(5)}
                         spotsLeft={space.spotsLeft}
+                        currency={space.currency}
                       />
                     )}
                   </div>
