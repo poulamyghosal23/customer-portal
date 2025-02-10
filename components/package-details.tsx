@@ -137,7 +137,7 @@ export function PackageDetails({ package: pkg, description }: Readonly<PackageDe
 
       <div className="mt-6">
         <h1 className="text-3xl font-semibold text-gray-900 mb-4">{pkg.name}</h1>
-        <div className="flex items-center space-x-4 mb-4">
+        {/* <div className="flex items-center space-x-4 mb-4">
           <div className="flex items-center">
             <Star className="h-5 w-5 text-blue-600 fill-current" />
             <span className="ml-1 text-sm text-gray-600">{pkg.rating} (20 reviews)</span>
@@ -153,7 +153,7 @@ export function PackageDetails({ package: pkg, description }: Readonly<PackageDe
               <span className="text-sm text-gray-600">Open Now</span>
             </div>
           )}
-        </div>
+        </div> */}
       </div>
 
       <section className="mb-8">
@@ -268,77 +268,77 @@ export function PackageDetails({ package: pkg, description }: Readonly<PackageDe
               )}
             </div>
           </section>
-          <section className="mb-8">
+            {/* <section className="mb-8">
             <h2 className="text-2xl font-semibold text-gray-900 mb-2">Reviews</h2>
             <h3 className="text-lg text-gray-700 mb-4">Reviews for {pkg.name}</h3>
             <div className="flex items-center gap-4 mb-6">
               <div className="flex items-center gap-1">
-                {[1, 2, 3, 4, 5].map((star) => (
-                  <Star key={star} className="h-6 w-6 text-blue-600 fill-current" />
-                ))}
+              {[1, 2, 3, 4, 5].map((star) => (
+                <Star key={star} className="h-6 w-6 text-blue-600 fill-current" />
+              ))}
               </div>
               <div className="flex items-baseline gap-2">
-                <span className="text-2xl font-semibold">5.0</span>
-                <span className="text-gray-600">15 Reviews</span>
+              <span className="text-2xl font-semibold">5.0</span>
+              <span className="text-gray-600">15 Reviews</span>
               </div>
             </div>
 
             <div className="grid gap-6">
               {[
-                {
-                  id: 1,
-                  author: "Sarah M.",
-                  date: "January 2025",
-                  rating: 5,
-                  comment:
-                    "Amazing space! Perfect for our team meeting. The amenities were exactly what we needed and the host was very accommodating.",
-                  avatar: "/placeholder.svg",
-                },
-                {
-                  id: 2,
-                  author: "Michael R.",
-                  date: "December 2024",
-                  rating: 5,
-                  comment:
-                    "Great location and very professional setup. The space was clean, well-lit, and had excellent WiFi. Would definitely book again!",
-                  avatar: "/placeholder.svg",
-                },
-                {
-                  id: 3,
-                  author: "Jessica L.",
-                  date: "December 2024",
-                  rating: 5,
-                  comment:
-                    "The host was very responsive and the booking process was smooth. The space exceeded our expectations.",
-                  avatar: "/placeholder.svg",
-                },
+              {
+                id: 1,
+                author: "Sarah M.",
+                date: "January 2025",
+                rating: 5,
+                comment:
+                "Amazing space! Perfect for our team meeting. The amenities were exactly what we needed and the host was very accommodating.",
+                avatar: "/placeholder.svg",
+              },
+              {
+                id: 2,
+                author: "Michael R.",
+                date: "December 2024",
+                rating: 5,
+                comment:
+                "Great location and very professional setup. The space was clean, well-lit, and had excellent WiFi. Would definitely book again!",
+                avatar: "/placeholder.svg",
+              },
+              {
+                id: 3,
+                author: "Jessica L.",
+                date: "December 2024",
+                rating: 5,
+                comment:
+                "The host was very responsive and the booking process was smooth. The space exceeded our expectations.",
+                avatar: "/placeholder.svg",
+              },
               ].map((review) => (
-                <div key={review.id} className="border-t border-gray-200 pt-6">
-                  <div className="flex items-start gap-4">
-                    <Image
-                      src={review.avatar || "/placeholder.svg"}
-                      alt={review.author}
-                      width={40}
-                      height={40}
-                      className="rounded-full"
-                    />
-                    <div className="flex-1">
-                      <div className="flex items-center justify-between mb-1">
-                        <h4 className="font-medium">{review.author}</h4>
-                        <span className="text-sm text-gray-500">{review.date}</span>
-                      </div>
-                      <div className="flex items-center mb-2">
-                        {[...Array(review.rating)].map((_, i) => (
-                          <Star key={i} className="h-4 w-4 text-blue-600 fill-current" />
-                        ))}
-                      </div>
-                      <p className="text-gray-600">{review.comment}</p>
-                    </div>
+              <div key={review.id} className="border-t border-gray-200 pt-6">
+                <div className="flex items-start gap-4">
+                <Image
+                  src={review.avatar || "/placeholder.svg"}
+                  alt={review.author}
+                  width={40}
+                  height={40}
+                  className="rounded-full"
+                />
+                <div className="flex-1">
+                  <div className="flex items-center justify-between mb-1">
+                  <h4 className="font-medium">{review.author}</h4>
+                  <span className="text-sm text-gray-500">{review.date}</span>
                   </div>
+                  <div className="flex items-center mb-2">
+                  {[...Array(review.rating)].map((_, i) => (
+                    <Star key={i} className="h-4 w-4 text-blue-600 fill-current" />
+                  ))}
+                  </div>
+                  <p className="text-gray-600">{review.comment}</p>
                 </div>
+                </div>
+              </div>
               ))}
             </div>
-          </section>
+            </section> */}
         </div>
 
         <div>
@@ -349,7 +349,7 @@ export function PackageDetails({ package: pkg, description }: Readonly<PackageDe
                 <span className="text-base font-normal text-gray-500">/hour</span>
               </div>
               <div className="flex items-center text-blue-600">
-                {pkg.bookingType === "instant" ? (
+                {pkg.instantlyBookable ? (
                   <>
                     <Zap className="h-5 w-5 mr-1" />
                     <span className="text-sm font-medium">Book Now</span>
@@ -376,7 +376,7 @@ export function PackageDetails({ package: pkg, description }: Readonly<PackageDe
               className="w-full mb-4 font-body bg-blue-600 hover:bg-blue-700 text-white hidden md:block"
               onClick={() => router.push("/checkout")}
             >
-              {pkg.bookingType === "instant" ? "Book Now" : "Host Request"}
+              {pkg.instantlyBookable ? "Book Now" : "Host Request"}
             </Button>
             <p className="text-center text-sm text-gray-500">{pkg.cancellationPolicy}</p>
           </div>
