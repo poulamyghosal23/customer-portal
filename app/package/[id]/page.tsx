@@ -29,6 +29,7 @@ export default function PackageDetailsPage() {
         console.log("Package details:", data)
         const amenities = data.amenities?.map((item: any) => item.amenity.name) || []
         console.log("amenities:", amenities)
+        console.log("Currency: ",data.venue.currency)
         setPackageDetails({ ...data, amenities })
         setError(null)
       } catch (err) {
