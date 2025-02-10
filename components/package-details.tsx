@@ -10,10 +10,11 @@ import { useRouter } from "next/navigation"
 import { Space } from "@/interfaces/space"
 
 interface PackageDetailsProps {
-  package: Space
+  readonly package: Space,
+  description: string,
 }
 
-export function PackageDetails({ package: pkg }: PackageDetailsProps) {
+export function PackageDetails({ package: pkg, description }: Readonly<PackageDetailsProps>) {
   const { favorites, addFavorite, removeFavorite } = useFavorites()
   const [isFavorite, setIsFavorite] = useState(favorites.some((fav) => fav.id === pkg.id))
   const [showLeftArrow, setShowLeftArrow] = useState(false)
@@ -28,14 +29,24 @@ export function PackageDetails({ package: pkg }: PackageDetailsProps) {
     setIsOpen(currentHour >= 9 && currentHour < 17) 
   }, [])
 
-  const media = [
-    ...(pkg.photos?.map((photo) => ({ type: "image" as const, url: photo.url })) || []),
-    ...(pkg.videos?.map((video) => ({
-      type: "video" as const,
-      url: video.url,
-      thumbnail: video.thumbnail,
-    })) || []),
+  const defaultMedia = [
+    { type: "video", url: "/media-gallery/placeholder-video.mp4", thumbnail: "/media-gallery/sample-video-thumbnail.jpg" },
+    { type: "image", url: "/media-gallery/placeholder-image1.jpg" },
+    { type: "image", url: "/media-gallery/placeholder-image2.jpg" },
+    { type: "image", url: "/media-gallery/placeholder-image3.jpg" },
   ]
+
+  const media = pkg.photos?.map((photo) => {
+    const isVideo = photo.url.endsWith(".mp4")
+    return {
+      type: isVideo ? "video" : "image",
+      url: photo.url,
+      thumbnail: isVideo ? photo.thumbnail : undefined,
+    }
+  }) || []
+
+  // Ensure there are 4 media items, using placeholders if necessary
+  const mediaWithPlaceholders = [...media, ...defaultMedia].slice(0, 4)
 
   const currentDay = new Date().toLocaleDateString("en-US", { weekday: "long" })
 
@@ -77,33 +88,31 @@ export function PackageDetails({ package: pkg }: PackageDetailsProps) {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-12 md:pb-8">
       {/* Blue notification banner removed */}
 
-      {media.length > 0 && (
-        <div className="relative">
-          <ImageCarousel media={media} title={pkg.name} />
-          <div className="absolute top-4 right-4 flex gap-2">
-            <Button
-              variant="secondary"
-              size="icon"
-              className="bg-white/90 hover:bg-white"
-              onClick={() => console.log("Share clicked")}
-            >
-              <Share className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="secondary"
-              size="icon"
-              className={`bg-white/90 hover:bg-white ${isFavorite ? "text-red-500" : "text-gray-600"}`}
-              onClick={(e) => {
-                e.preventDefault()
-                e.stopPropagation()
-                toggleFavorite()
-              }}
-            >
-              <Heart className={`h-4 w-4 ${isFavorite ? "fill-current" : ""}`} />
-            </Button>
-          </div>
+      <div className="relative">
+        <ImageCarousel media={mediaWithPlaceholders} title={pkg.name} />
+        <div className="absolute top-4 right-4 flex gap-2">
+          <Button
+            variant="secondary"
+            size="icon"
+            className="bg-white/90 hover:bg-white"
+            onClick={() => console.log("Share clicked")}
+          >
+            <Share className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="secondary"
+            size="icon"
+            className={`bg-white/90 hover:bg-white ${isFavorite ? "text-red-500" : "text-gray-600"}`}
+            onClick={(e) => {
+              e.preventDefault()
+              e.stopPropagation()
+              toggleFavorite()
+            }}
+          >
+            <Heart className={`h-4 w-4 ${isFavorite ? "fill-current" : ""}`} />
+          </Button>
         </div>
-      )}
+      </div>
 
       <div className="mt-6">
         <h1 className="text-3xl font-semibold text-gray-900 mb-4">{pkg.name}</h1>
@@ -149,7 +158,7 @@ export function PackageDetails({ package: pkg }: PackageDetailsProps) {
         <div className="md:col-span-2">
           <section className="mb-8">
             <h2 className="text-2xl font-semibold text-gray-900 mb-4">About The Space</h2>
-            <p className="text-gray-600 text-lg leading-relaxed">{pkg.description}</p>
+            <p className="text-gray-600 text-lg leading-relaxed">{description || "No description available."}</p>
           </section>
 
           <section className="mb-8">

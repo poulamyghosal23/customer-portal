@@ -15,7 +15,6 @@ const apiURL = "http://localhost:4000"
 export default function PackageDetailsPage() {
   const [isFilterOpen, setIsFilterOpen] = useState(false)
   const [packageDetails, setPackageDetails] = useState<Space | null>(null)
-  const [amenities, setAmenities] = useState<string[]>([])
   const [error, setError] = useState<string | null>(null)
   const params = useParams()
 
@@ -26,8 +25,11 @@ export default function PackageDetailsPage() {
         if (!response.ok) {
           throw new Error("Failed to load package details")
         }
-        const data = await response.json()
-        setPackageDetails(data)
+        const data = await response.json().then((data) => data.data)
+        console.log("Package details:", data)
+        const amenities = data.amenities?.map((item: any) => item.amenity.name) || []
+        console.log("amenities:", amenities)
+        setPackageDetails({ ...data, amenities })
         setError(null)
       } catch (err) {
         setError("Failed to load package details")
@@ -35,22 +37,7 @@ export default function PackageDetailsPage() {
       }
     }
 
-    const fetchAmenities = async () => {
-      try {
-        // const response = await fetch(`${apiURL}/space-amenity?spaceId=${params.id}`, { method: 'GET' })
-        const response = await fetch(`${apiURL}/space-amenity?spaceId=224`, { method: 'GET' })
-        if (!response.ok) {
-          throw new Error("Failed to load amenities")
-        }
-        const data = await response.json()
-        setAmenities(data.data.map((item: any) => item.amenity.name))
-      } catch (err) {
-        console.error("Error loading amenities:", err)
-      }
-    }
-
     fetchPackageDetails()
-    fetchAmenities()
   }, [params.id])
 
   if (error) {
@@ -109,7 +96,8 @@ export default function PackageDetailsPage() {
                 Back
               </Button>
             </div>
-            <PackageDetails package={{ ...packageDetails, amenities }} />
+            {console.log("Package description:", packageDetails?.description)}
+            <PackageDetails package={packageDetails} description={packageDetails?.description} />
           </main>
         </div>
       </FavoritesProvider>

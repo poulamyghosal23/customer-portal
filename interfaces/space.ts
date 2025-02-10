@@ -39,7 +39,7 @@ export interface Space {
     venue: Venue;
     creditHours: [];
     eventData: any;
-    amenities: [];
+    amenities: string[];
     billCycleStart?: number;
     access247: boolean;
     isOngoingCheckin?: boolean;
