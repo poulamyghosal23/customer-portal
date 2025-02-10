@@ -72,7 +72,6 @@ export function SpaceCard({
             className="object-cover transition-transform group-hover:scale-105"
             loading="lazy"
           />
-          {/* Navigation Arrows */}
           {images.length > 1 && (
             <>
               <button

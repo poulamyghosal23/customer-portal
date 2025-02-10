@@ -41,13 +41,13 @@ import { useIntersectionObserver } from "@/hooks/use-intersection-observer"
 import { useRouter } from "next/navigation"
 import { Space } from "@/interfaces/space"
 
-const nycCenter = { lat: 40.712776, lng: -74.005974 } // Corrected coordinates for New York City
+const nycCenter = { lat: 40.712776, lng: -74.005974 }
 const PAGE_SIZE = 20
 
 const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
   if (lat1 === undefined || lon1 === undefined || lat2 === undefined || lon2 === undefined) return NaN
   const toRad = (value: number) => (value * Math.PI) / 180
-  const R = 3958.8 // Radius of the Earth in miles
+  const R = 3958.8 
   const dLat = toRad(lat2 - lat1)
   const dLon = toRad(lon2 - lon1)
   const a =
@@ -96,6 +96,7 @@ function HomePage() {
   const router = useRouter()
   const cardRefs = useRef<Record<number, HTMLDivElement | null>>({})
   const observerRef = useRef<IntersectionObserver | null>(null)
+  const initialLoad = useRef(true)
 
   const observer = useRef<IntersectionObserver | null>(null)
   // const apiURL = "https://dev-api.devhz.dropdesk.net"
@@ -137,7 +138,10 @@ function HomePage() {
   }
 
   useEffect(() => {
-    fetchSpaces(1)
+    if (initialLoad.current) {
+      fetchSpaces(1)
+      initialLoad.current = false
+    }
   }, [])
 
   const lastSpaceElementRef = useCallback(
@@ -233,8 +237,6 @@ function HomePage() {
     window.scrollTo(0, 0)
     router.push(`/package/${spaceId}`)
   }
-
-
 
   return (
     <div className="flex min-h-screen flex-col">
