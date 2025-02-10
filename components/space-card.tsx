@@ -150,11 +150,7 @@ export function SpaceCard({
 
           <div className="flex items-center justify-between pt-1">
             <div className="font-medium">${price}/hr</div>
-            {spotsLeft !== undefined && spotsLeft <= 3 && (
-              <span className="text-xs font-medium text-red-500">
-                {spotsLeft} spot{spotsLeft !== 1 ? "s" : ""} left!
-              </span>
-            )}
+            <span className="text-xs font-medium text-orange-600">{spotsLeft}</span>
           </div>
         </div>
       </div>

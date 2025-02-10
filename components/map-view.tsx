@@ -9,11 +9,11 @@ import { useRouter } from "next/navigation"
 import { ChevronLeft, ChevronRight, Star, Clock, Zap, MapPin } from "lucide-react"
 
 interface MapViewProps {
-  spaces?: Space[]
-  center?: { lat: number; lng: number }
-  zoom?: number
-  onMarkerClick?: (space: Space) => void
-  activeSpaceId?: string | null
+  readonly spaces: Space[]
+  readonly center?: { lat: number; lng: number }
+  readonly zoom?: number
+  readonly onMarkerClick?: (space: Space) => void
+  readonly activeSpaceId?: string | null
 }
 
 const containerStyle = {
@@ -21,7 +21,22 @@ const containerStyle = {
   height: "100%",
 }
 
-function PackagePreview({ space }: { space: Space }) {
+const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
+  if (lat1 === undefined || lon1 === undefined || lat2 === undefined || lon2 === undefined) return NaN
+  const toRad = (value: number) => (value * Math.PI) / 180
+  const R = 3958.8 // Radius of the Earth in miles
+  const dLat = toRad(lat2 - lat1)
+  const dLon = toRad(lon2 - lon1)
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+    Math.sin(dLon / 2) * Math.sin(dLon / 2)
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+  const distance = R * c // Distance in miles
+  return distance
+}
+
+function PackagePreview({ space, center }: { readonly space: Space, readonly center: { lat: number, lng: number } }) {
   const router = useRouter()
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
 
@@ -36,6 +51,8 @@ function PackagePreview({ space }: { space: Space }) {
     e.stopPropagation()
     setCurrentImageIndex((prev) => (prev - 1 + (space.images?.length || 1)) % (space.images?.length || 1))
   }
+
+  const distance = calculateDistance(center.lat, center.lng, space.venue.coordinates.coordinates[1], space.venue.coordinates.coordinates[0])
 
   return (
     <div
@@ -87,11 +104,11 @@ function PackagePreview({ space }: { space: Space }) {
         <h3 className="font-medium text-gray-900 line-clamp-1">{space.name}</h3>
         <div className="flex items-center text-gray-600 text-xs gap-1">
           <MapPin className="h-4 w-4" />
-          <span>{space.distance} away</span>
+          <span>{distance.toFixed(2)} miles away</span>
         </div>
         <div className="flex items-center text-gray-600 text-xs gap-1">
           <Clock className="h-3 w-3" />
-          <span>{space.hours || "9:00 AM - 5:00 PM"}</span>
+          <span>{space.operatingHours ?? "9:00 AM - 5:00 PM"}</span>
         </div>
         <div className="flex items-center justify-between pt-1">
           <div className="font-medium">${space.price}/hr</div>
@@ -111,7 +128,8 @@ function PriceMarker({
   isActive,
   onClick,
   showPreview,
-}: { space: Space; isActive?: boolean; onClick: () => void; showPreview: boolean }) {
+  center,
+}: { space: Space; isActive?: boolean; onClick: () => void; showPreview: boolean, center: { lat: number, lng: number } }) {
   return (
     <div
       className={cn(
@@ -137,150 +155,31 @@ function PriceMarker({
         onClick={onClick}
       >
         ${space.price}
+        {space.bookingType === "instant" ? (
+          <Zap className="h-3 w-3 text-white ml-1" />
+        ) : (
+          <Clock className="h-3 w-3 text-white ml-1" />
+        )}
       </div>
       {showPreview && (
         <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 hidden md:block z-30">
-          <PackagePreview space={space} />
+          <PackagePreview space={space} center={center} />
         </div>
       )}
     </div>
   )
 }
 
-// Mock spaces data for New York
-const mockSpaces = [
-  {
-    id: "1",
-    name: "Midtown Studio",
-    price: 145,
-    latitude: 40.7549,
-    longitude: -73.984,
-    location: "Midtown, NY",
-    image: "/placeholder.svg",
-    images: [],
-    rating: 4.5,
-    distance: "0.5 miles",
-    hours: "9:00 AM - 5:00 PM",
-    bookingType: "instant",
-    availableSpots: 2,
-  },
-  {
-    id: "2",
-    name: "SoHo Space",
-    price: 165,
-    latitude: 40.7233,
-    longitude: -74.003,
-    location: "SoHo, NY",
-    image: "/placeholder.svg",
-    images: [],
-    rating: 4.2,
-    distance: "1.2 miles",
-    hours: "10:00 AM - 6:00 PM",
-    bookingType: "request",
-    availableSpots: 1,
-  },
-  {
-    id: "3",
-    name: "Chelsea Office",
-    price: 128,
-    latitude: 40.7466,
-    longitude: -74.0012,
-    location: "Chelsea, NY",
-    image: "/placeholder.svg",
-    images: [],
-    rating: 4.8,
-    distance: "0.8 miles",
-    hours: "9:00 AM - 5:00 PM",
-    bookingType: "instant",
-    availableSpots: 5,
-  },
-  {
-    id: "4",
-    name: "East Village Desk",
-    price: 98,
-    latitude: 40.7264,
-    longitude: -73.9818,
-    location: "East Village, NY",
-    image: "/placeholder.svg",
-    images: [],
-    rating: 4,
-    distance: "1.5 miles",
-    hours: "10:00 AM - 6:00 PM",
-    bookingType: "request",
-    availableSpots: 0,
-  },
-  {
-    id: "5",
-    name: "Financial District Hub",
-    price: 175,
-    latitude: 40.7075,
-    longitude: -74.0021,
-    location: "Financial District, NY",
-    image: "/placeholder.svg",
-    images: [],
-    rating: 4.6,
-    distance: "2 miles",
-    hours: "9:00 AM - 5:00 PM",
-    bookingType: "instant",
-    availableSpots: 3,
-  },
-  {
-    id: "6",
-    name: "Upper West Side Studio",
-    price: 135,
-    latitude: 40.787,
-    longitude: -73.9754,
-    location: "Upper West Side, NY",
-    image: "/placeholder.svg",
-    images: [],
-    rating: 4.3,
-    distance: "2.5 miles",
-    hours: "9:00 AM - 5:00 PM",
-    bookingType: "request",
-    availableSpots: 1,
-  },
-  {
-    id: "7",
-    name: "Tribeca Office",
-    price: 185,
-    latitude: 40.7195,
-    longitude: -74.0089,
-    location: "Tribeca, NY",
-    image: "/placeholder.svg",
-    images: [],
-    rating: 4.9,
-    distance: "1 mile",
-    hours: "9:00 AM - 5:00 PM",
-    bookingType: "instant",
-    availableSpots: 4,
-  },
-  {
-    id: "8",
-    name: "Greenwich Village Space",
-    price: 155,
-    latitude: 40.7339,
-    longitude: -73.9976,
-    location: "Greenwich Village, NY",
-    image: "/placeholder.svg",
-    images: [],
-    rating: 4.7,
-    distance: "1.8 miles",
-    hours: "10:00 AM - 6:00 PM",
-    bookingType: "instant",
-    availableSpots: 2,
-  },
-]
-
 export function MapView({
-  spaces = mockSpaces,
-  center = { lat: 40.7128, lng: -74.006 }, // New York coordinates
+  spaces = [],
+  center = { lat: 40.712776, lng: -74.005974 },
   zoom = 13,
   onMarkerClick,
   activeSpaceId,
 }: MapViewProps) {
   const { isLoaded } = useJsApiLoader({
     id: "google-map-script",
-    googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!,
+    googleMapsApiKey: "AIzaSyCJCpoarISphEvZfjnnUEBhgYDZcaIcARQ",
   })
 
   const [map, setMap] = useState<google.maps.Map | null>(null)
@@ -327,13 +226,13 @@ export function MapView({
         fullscreenControl: false,
         zoomControl: true,
         clickableIcons: false,
-        styles: [], // Remove all custom styles to keep the map bright
+        styles: [],
       }}
     >
       {spaces.map((space) => (
         <OverlayView
           key={space.id}
-          position={{ lat: space.latitude, lng: space.longitude }}
+          position={{ lat: space.venue.coordinates.coordinates[1], lng: space.venue.coordinates.coordinates[0] }}
           mapPaneName={OverlayView.OVERLAY_MOUSE_TARGET}
         >
           <PriceMarker
@@ -353,6 +252,7 @@ export function MapView({
               }
             }}
             showPreview={clickedMarker === space.id}
+            center={center}
           />
         </OverlayView>
       ))}

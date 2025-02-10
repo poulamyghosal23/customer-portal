@@ -39,47 +39,52 @@ import { useI18n } from "@/contexts/i18n-context"
 import Image from "next/image"
 import { useIntersectionObserver } from "@/hooks/use-intersection-observer"
 import { useRouter } from "next/navigation"
+import { Space } from "@/interfaces/space"
 
-const generateMockSpaces = (count: number) => {
-  const mockImages = [
-    "/placeholder.svg?height=600&width=800&text=Image1&bg=FF5733",
-    "/placeholder.svg?height=600&width=800&text=Image2&bg=33FF57",
-    "/placeholder.svg?height=600&width=800&text=Image3&bg=3357FF",
-    "/placeholder.svg?height=600&width=800&text=Image4&bg=F333FF",
-    "/placeholder.svg?height=600&width=800&text=Image5&bg=FF3333",
-  ]
+const nycCenter = { lat: 40.712776, lng: -74.005974 } // Corrected coordinates for New York City
+const PAGE_SIZE = 20
 
-  return Array.from({ length: count }, (_, i) => ({
-    id: i + 1,
-    title: `Space ${i + 1}`,
-    images: [
-      mockImages[i % mockImages.length],
-      mockImages[(i + 1) % mockImages.length],
-      mockImages[(i + 2) % mockImages.length],
-    ],
-    price: Math.floor(Math.random() * 100) + 50,
-    capacity: Math.floor(Math.random() * 30) + 10,
-    responseTime: "1 hr",
-    bookingType: Math.random() > 0.5 ? "instant" : ("request" as const),
-    location: { lat: 40.7128 + Math.random() * 0.1, lng: -74.006 + Math.random() * 0.1, price: 75 },
-    distance: `${(Math.random() * 5).toFixed(1)} mi`,
-    operatingHours: Math.random() > 0.5 ? "24/7" : "08:00 AM - 10:00 PM",
-    rating: (Math.random() * 2 + 3).toFixed(1),
-    spotsLeft: Math.floor(Math.random() * 10),
-  }))
+const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
+  if (lat1 === undefined || lon1 === undefined || lat2 === undefined || lon2 === undefined) return NaN
+  const toRad = (value: number) => (value * Math.PI) / 180
+  const R = 3958.8 // Radius of the Earth in miles
+  const dLat = toRad(lat2 - lat1)
+  const dLon = toRad(lon2 - lon1)
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+    Math.sin(dLon / 2) * Math.sin(dLon / 2)
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+  const distance = R * c // Distance in miles
+  return distance
 }
 
-const initialSpaces = generateMockSpaces(20)
-const nycCenter = { lat: 40.7128, lng: -74.006 }
+const formatTime = (time: string) => {
+  const [hour, minute] = time.split(":").map(Number)
+  const ampm = hour >= 12 ? "PM" : "AM"
+  const formattedHour = hour % 12 || 12
+  return `${formattedHour}:${minute.toString().padStart(2, "0")} ${ampm}`
+}
+
+const calculateSpotsLeft = (space: any) => {
+  console.log("space ", space)
+  if (space.quantityUnlimited) {
+    console.log("Unlimited spots left")
+    return "Unlimited spots left"
+  }
+  const spotsLeft = space.quantity - space.usedQuantity
+  console.log("spots left: ", spotsLeft)
+  return `${spotsLeft} spot${spotsLeft !== 1 ? "s" : ""} left`
+}
 
 function HomePage() {
   const { t } = useI18n()
   const [isFilterOpen, setIsFilterOpen] = useState(false)
-  const [selectedLocation, setSelectedLocation] = useState<(typeof initialSpaces)[0]["location"]>()
+  const [selectedLocation, setSelectedLocation] = useState<string | undefined>()
   const { favorites, addFavorite, removeFavorite, isFavorite } = useFavorites()
   const { locationSearch } = useSearch()
   const [showMap, setShowMap] = useState(false)
-  const [spaces, setSpaces] = useState(initialSpaces)
+  const [spaces, setSpaces] = useState<Space[]>([])
   const [loading, setLoading] = useState(false)
   const [hasMore, setHasMore] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -89,8 +94,52 @@ function HomePage() {
   const [currentImageIndices, setCurrentImageIndices] = useState<{ [key: number]: number }>({})
   const [selectedSpaceId, setSelectedSpaceId] = useState<number | null>(null)
   const router = useRouter()
+  const cardRefs = useRef<Record<number, HTMLDivElement | null>>({})
+  const observerRef = useRef<IntersectionObserver | null>(null)
 
   const observer = useRef<IntersectionObserver | null>(null)
+  // const apiURL = "https://dev-api.devhz.dropdesk.net"
+  const apiURL = "http://localhost:4000"
+
+  const fetchSpaces = async (page: number) => {
+    setLoading(true)
+    try {
+      const brandId = 103
+      const response = await fetch(`${apiURL}/space?status=Publish&page=${page}&limit=${PAGE_SIZE}&brandId=${brandId}`, { method: 'GET' })
+      if (!response.ok) {
+        console.error("Failed to load spaces:", response)
+      }
+      const data = await response.json()
+      const spacesArray = data.data.map((space: any) => {
+        const lat = space.venue.coordinates.coordinates[1]
+        const lng = space.venue.coordinates.coordinates[0]
+        const distance = calculateDistance(nycCenter.lat, nycCenter.lng, lat, lng)
+        const operatingHours = `${formatTime(space.venue.accessHoursFrom)} - ${formatTime(space.venue.accessHoursTo)}`
+        const spotsLeft = calculateSpotsLeft(space)
+        console.log("Calculated spots left returned: ", spotsLeft)
+        return {
+          ...space,
+          distance: isNaN(distance) ? 0 : distance,
+          operatingHours,
+          spotsLeft
+        }
+      })
+      const totalCount = data.total
+      console.log(totalCount + " spaces returned")
+      setSpaces((prevSpaces) => [...prevSpaces, ...spacesArray])
+      setHasMore(spaces.length + spacesArray.length < totalCount)
+    } catch (err) {
+      console.error("Failed to load spaces:", err)
+      setError("Failed to load spaces. Please try again.")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchSpaces(1)
+  }, [])
+
   const lastSpaceElementRef = useCallback(
     (node: HTMLDivElement | null) => {
       if (loading) return
@@ -108,28 +157,19 @@ function HomePage() {
   const loadMoreSpaces = () => {
     setLoading(true)
     setError(null)
-    setTimeout(() => {
-      try {
-        const newSpaces = generateMockSpaces(10)
-        setSpaces((prevSpaces) => [...prevSpaces, ...newSpaces])
-        setHasMore(spaces.length + newSpaces.length < 100)
-      } catch (err) {
-        setError("Failed to load more spaces. Please try again.")
-      } finally {
-        setLoading(false)
-      }
-    }, 1000)
+    const nextPage = Math.ceil(spaces.length / PAGE_SIZE) + 1
+    fetchSpaces(nextPage)
   }
 
-  const toggleFavorite = (space: (typeof initialSpaces)[0]) => {
+  const toggleFavorite = (space: Space) => {
     if (isFavorite(space.id)) {
       removeFavorite(space.id)
     } else {
       addFavorite({
         id: space.id,
-        title: space.title,
-        location: space.distance,
-        image: space.images[0],
+        title: space.name,
+        location: space.venue,
+        image: space.photos[0]?.url || "/placeholder.svg",
         brandName: "Sample Brand",
       })
     }
@@ -170,21 +210,21 @@ function HomePage() {
     return () => window.removeEventListener("resize", handleResize)
   }, [])
 
-  const nextImage = (e: React.MouseEvent, space: (typeof initialSpaces)[0]) => {
+  const nextImage = (e: React.MouseEvent, space: Space) => {
     e.preventDefault()
     e.stopPropagation()
     setCurrentImageIndices((prev) => ({
       ...prev,
-      [space.id]: (prev[space.id] + 1) % space.images.length || 0,
+      [space.id]: (prev[space.id] + 1) % space.photos.length || 0,
     }))
   }
 
-  const previousImage = (e: React.MouseEvent, space: (typeof initialSpaces)[0]) => {
+  const previousImage = (e: React.MouseEvent, space: Space) => {
     e.preventDefault()
     e.stopPropagation()
     setCurrentImageIndices((prev) => ({
       ...prev,
-      [space.id]: (prev[space.id] - 1 + space.images.length) % space.images.length || 0,
+      [space.id]: (prev[space.id] - 1 + space.photos.length) % space.photos.length || 0,
     }))
   }
 
@@ -194,7 +234,7 @@ function HomePage() {
     router.push(`/package/${spaceId}`)
   }
 
-  const observerRef = useRef<IntersectionObserver | null>(null)
+
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -204,7 +244,6 @@ function HomePage() {
           { label: "Home", href: "/" },
           { label: t("homePage.title"), href: "#" },
         ]}
-        className="px-6 py-4"
       />
       <main className="flex-1 flex flex-col">
         <SecondaryHeader
@@ -217,18 +256,11 @@ function HomePage() {
           {/* Map View */}
           {showMap && (
             <div className="fixed inset-0 z-10">
-              <div className="absolute top-[73px] left-0 right-0 bottom-0">
-                <MapView
-                  center={nycCenter}
-                  locations={spaces.map((space) => space.location)}
-                  selectedLocation={selectedLocation}
-                  onMarkerClick={setSelectedLocation}
-                />
-              </div>
               <div className="absolute bottom-0 left-0 right-0 p-4 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]">
                 <div className="flex overflow-x-auto pb-6 space-x-4 scrollbar-hide">
                   {spaces.map((space) => {
-                    const currentImageIndex = currentImageIndices[space.id] || 0
+                    const currentImageIndex = space.id !== undefined ? currentImageIndices[space.id] || 0 : 0
+                    const imageUrl = Array.isArray(space.photos) && space.photos.length > 0 ? space.photos[0].url : "/placeholder.svg"
 
                     return (
                       <div
@@ -243,14 +275,14 @@ function HomePage() {
                         >
                           <div className={`relative aspect-[3/2]`}>
                             <Image
-                              src={space.images[currentImageIndex] || "/placeholder.svg"}
-                              alt={space.title}
+                              src={imageUrl}
+                              alt={space.name}
                               layout="fill"
                               objectFit="cover"
                             />
-                            {space.images.length > 1 && (
+                            {space.photos.length > 1 && (
                               <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1 z-10">
-                                {space.images.map((_, index) => (
+                                {space.photos.map((_, index) => (
                                   <div
                                     key={index}
                                     className={`h-1.5 rounded-full transition-all ${
@@ -260,7 +292,7 @@ function HomePage() {
                                 ))}
                               </div>
                             )}
-                            {space.images.length > 1 && (
+                            {space.photos.length > 1 && (
                               <>
                                 <button
                                   onClick={(e) => {
@@ -286,13 +318,13 @@ function HomePage() {
                                 </button>
                               </>
                             )}
-                            {space.bookingType && (
+                            {space.instantlyBookable && (
                               <div
                                 className={`absolute top-2 right-2 p-1 rounded-full z-10 ${
-                                  space.bookingType === "instant" ? "bg-blue-600" : "bg-white"
+                                  space.instantlyBookable ? "bg-blue-600" : "bg-white"
                                 }`}
                               >
-                                {space.bookingType === "instant" ? (
+                                {space.instantlyBookable ? (
                                   <Zap className="h-3 w-3 text-white" />
                                 ) : (
                                   <Clock className="h-3 w-3 text-blue-600" />
@@ -302,27 +334,7 @@ function HomePage() {
                           </div>
                           <div className={`p-2 space-y-0.5`}>
                             <div className="flex items-start justify-between">
-                              <h3 className="font-medium text-gray-900 line-clamp-1">{space.title}</h3>
-                              <div className="flex items-center gap-1">
-                                <Star className="h-4 w-4 text-blue-600 fill-current" />
-                                <span className="text-sm text-gray-600">{space.rating}</span>
-                              </div>
-                            </div>
-                            <div className="flex items-center text-gray-600 text-xs gap-1">
-                              <MapPin className="h-4 w-4" />
-                              <span>{space.distance}</span>
-                            </div>
-                            <div className="flex items-center text-gray-600 text-xs gap-1">
-                              <Clock className="h-3 w-3" />
-                              <span>{space.operatingHours}</span>
-                            </div>
-                            <div className="flex items-center justify-between pt-1">
-                              <div className="font-medium">From ${space.price}/hr</div>
-                              {space.spotsLeft !== undefined && space.spotsLeft <= 3 && (
-                                <span className="text-xs font-medium text-orange-600">
-                                  Only {space.spotsLeft} spot{space.spotsLeft !== 1 ? "s" : ""} left
-                                </span>
-                              )}
+                              <h3 className="font-medium text-gray-900 line-clamp-1">{space.name}</h3>
                             </div>
                           </div>
                         </div>
@@ -334,37 +346,30 @@ function HomePage() {
             </div>
           )}
 
-          {/* Regular Grid View */}
           <div
-            className={`
-              w-full md:w-[55%] px-6 pb-6 md:pt-6 overflow-auto 
-              ${showMap ? "hidden" : "block"}
-            `}
+          className={`
+            w-full md:w-[55%] px-6 pb-6 md:pt-6 overflow-auto 
+            ${showMap ? "hidden" : "block"}
+          `}
           >
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
               {spaces.map((space, index) => {
-                const cardRef = useRef<HTMLDivElement>(null)
-                const isVisible = useIntersectionObserver({
-                  target: cardRef,
-                  threshold: 0.1,
-                })
+                const isVisible = true
+                const distanceText = `${space.distance.toFixed(2)} mi`
 
                 return (
-                  <div key={space.id} ref={cardRef} onClick={(e) => handleSpaceClick(e, space.id)}>
+                  <div key={`${space.id}-${index}`} ref={(el) => (cardRefs.current[space.id] = el)} onClick={(e) => handleSpaceClick(e, space.id)}>
                     {isVisible && (
                       <SpaceCard
                         id={space.id}
-                        title={space.title}
-                        images={space.images}
+                        title={space.name}
+                        images={space.photos}
                         price={space.price}
                         capacity={space.capacity}
-                        responseTime={space.responseTime}
-                        bookingType={space.bookingType}
-                        isFavorite={isFavorite(space.id)}
-                        onFavorite={() => toggleFavorite(space)}
-                        distance={space.distance}
+                        bookingType={space.instantlyBookable ? "instant" : "request"}
+                        distance={distanceText}
                         operatingHours={space.operatingHours}
-                        rating={Number(space.rating)}
+                        rating={Number(5)}
                         spotsLeft={space.spotsLeft}
                       />
                     )}
@@ -386,16 +391,20 @@ function HomePage() {
             {loading && <p className="text-center mt-4">{t("homePage.loadingMore")}</p>}
             {!hasMore && <p className="text-center mt-4">{t("homePage.noMoreSpaces")}</p>}
             {error && <Error message={error} />}
+            {hasMore && !loading && (
+              <div className="text-center mt-4">
+                <Button onClick={loadMoreSpaces}>{t("Load More")}</Button>
+              </div>
+            )}
           </div>
 
-          {/* Desktop Map */}
           <div className={`w-full md:w-[45%] ${showMap ? "block" : "hidden md:block"}`}>
             <div className="sticky top-[73px] h-[calc(100vh-73px)]">
               <MapView
+                spaces={spaces}
                 center={nycCenter}
-                locations={spaces.map((space) => space.location)}
-                selectedLocation={selectedLocation}
                 onMarkerClick={setSelectedLocation}
+                activeSpaceId={selectedSpaceId?.toString() || null}
               />
             </div>
           </div>
