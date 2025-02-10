@@ -7,39 +7,10 @@ import { useState, useRef, useEffect } from "react"
 import { useFavorites } from "@/contexts/favorites-context"
 import { MapView } from "./map-view"
 import { useRouter } from "next/navigation"
+import { Space } from "@/interfaces/space"
 
 interface PackageDetailsProps {
-  package: {
-    id: number
-    title: string
-    description: string
-    images: string[]
-    videos?: { url: string; thumbnail?: string }[]
-    price: number
-    capacity: number
-    responseTime: string
-    instantBook: boolean
-    bookingType: "instant" | "request"
-    location: string
-    distance: string
-    operatingHours: {
-      [key: string]: string
-    }
-    rating: number
-    amenities: string[]
-    host: {
-      name: string
-      image: string
-      responseRate: number
-      avgResponseTime: string
-      isSuperhost: boolean
-    }
-    cancellationPolicy: string
-    houseRules: string[]
-    latitude: number
-    longitude: number
-    venueDescription?: string
-  }
+  package: Space
 }
 
 export function PackageDetails({ package: pkg }: PackageDetailsProps) {
@@ -52,19 +23,18 @@ export function PackageDetails({ package: pkg }: PackageDetailsProps) {
   const router = useRouter()
 
   useEffect(() => {
-    // This is a placeholder logic. In a real app, you'd check against actual operating hours.
     const now = new Date()
     const currentHour = now.getHours()
-    setIsOpen(currentHour >= 9 && currentHour < 17) // Assuming 9 AM to 5 PM as open hours
+    setIsOpen(currentHour >= 9 && currentHour < 17) 
   }, [])
 
   const media = [
-    ...pkg.images.map((url) => ({ type: "image" as const, url })),
-    ...(pkg.videos || []).map((video) => ({
+    ...(pkg.photos?.map((photo) => ({ type: "image" as const, url: photo.url })) || []),
+    ...(pkg.videos?.map((video) => ({
       type: "video" as const,
       url: video.url,
       thumbnail: video.thumbnail,
-    })),
+    })) || []),
   ]
 
   const currentDay = new Date().toLocaleDateString("en-US", { weekday: "long" })
@@ -75,9 +45,9 @@ export function PackageDetails({ package: pkg }: PackageDetailsProps) {
     } else {
       addFavorite({
         id: pkg.id,
-        title: pkg.title,
-        location: pkg.location,
-        image: pkg.images[0],
+        title: pkg.name,
+        location: pkg.venue.address,
+        image: pkg.photos?.[0]?.url || "/placeholder.svg",
         brandName: "Sample Brand",
       })
     }
@@ -101,38 +71,42 @@ export function PackageDetails({ package: pkg }: PackageDetailsProps) {
     }
   }
 
+  const venueCoordinates = pkg.venue?.coordinates?.coordinates || [0, 0]
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-12 md:pb-8">
       {/* Blue notification banner removed */}
 
-      <div className="relative">
-        <ImageCarousel media={media} title={pkg.title} />
-        <div className="absolute top-4 right-4 flex gap-2">
-          <Button
-            variant="secondary"
-            size="icon"
-            className="bg-white/90 hover:bg-white"
-            onClick={() => console.log("Share clicked")}
-          >
-            <Share className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="secondary"
-            size="icon"
-            className={`bg-white/90 hover:bg-white ${isFavorite ? "text-red-500" : "text-gray-600"}`}
-            onClick={(e) => {
-              e.preventDefault()
-              e.stopPropagation()
-              toggleFavorite()
-            }}
-          >
-            <Heart className={`h-4 w-4 ${isFavorite ? "fill-current" : ""}`} />
-          </Button>
+      {media.length > 0 && (
+        <div className="relative">
+          <ImageCarousel media={media} title={pkg.name} />
+          <div className="absolute top-4 right-4 flex gap-2">
+            <Button
+              variant="secondary"
+              size="icon"
+              className="bg-white/90 hover:bg-white"
+              onClick={() => console.log("Share clicked")}
+            >
+              <Share className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="secondary"
+              size="icon"
+              className={`bg-white/90 hover:bg-white ${isFavorite ? "text-red-500" : "text-gray-600"}`}
+              onClick={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+                toggleFavorite()
+              }}
+            >
+              <Heart className={`h-4 w-4 ${isFavorite ? "fill-current" : ""}`} />
+            </Button>
+          </div>
         </div>
-      </div>
+      )}
 
       <div className="mt-6">
-        <h1 className="text-3xl font-semibold text-gray-900 mb-4">{pkg.title}</h1>
+        <h1 className="text-3xl font-semibold text-gray-900 mb-4">{pkg.name}</h1>
         <div className="flex items-center space-x-4 mb-4">
           <div className="flex items-center">
             <Star className="h-5 w-5 text-blue-600 fill-current" />
@@ -156,13 +130,13 @@ export function PackageDetails({ package: pkg }: PackageDetailsProps) {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <div className="relative w-16 aspect-square rounded-full overflow-hidden">
-              <Image src={pkg.host.image || "/placeholder.svg"} alt={pkg.host.name} fill className="object-cover" />
+              <Image src={pkg.host?.image || "/placeholder.svg"} alt={pkg.host?.name || "Host"} fill className="object-cover" />
             </div>
             <div>
               <h2 className="text-lg">
-                Hosted by <span className="font-medium">{pkg.host.name}</span>
+                Hosted by <span className="font-medium">{pkg.host?.name}</span>
               </h2>
-              <p className="text-sm text-gray-600">Usually responds within {pkg.host.avgResponseTime}</p>
+              <p className="text-sm text-gray-600">Usually responds within {pkg.host?.avgResponseTime}</p>
             </div>
           </div>
           <Button className="bg-gray-900 hover:bg-gray-800 text-white">Contact Host</Button>
@@ -195,16 +169,16 @@ export function PackageDetails({ package: pkg }: PackageDetailsProps) {
             <h2 className="text-2xl font-semibold text-gray-900 mb-4">Location</h2>
             <div className="h-[300px] w-full rounded-lg overflow-hidden">
               <MapView
-                center={{ lat: pkg.latitude, lng: pkg.longitude }}
-                locations={[{ lat: pkg.latitude, lng: pkg.longitude, price: pkg.price }]}
-                selectedLocation={{ lat: pkg.latitude, lng: pkg.longitude, price: pkg.price }}
+                center={{ lat: venueCoordinates[1], lng: venueCoordinates[0] }}
+                locations={[{ lat: venueCoordinates[1], lng: venueCoordinates[0], price: pkg.price }]}
+                selectedLocation={{ lat: venueCoordinates[1], lng: venueCoordinates[0], price: pkg.price }}
               />
             </div>
           </section>
           <section className="mb-8">
             <h2 className="text-2xl font-semibold text-gray-900 mb-4">About The Venue</h2>
             <p className="text-gray-600 text-lg leading-relaxed">
-              {pkg.venueDescription || "Information about the venue will be displayed here."}
+              {pkg.venue?.description || "Information about the venue will be displayed here."}
             </p>
           </section>
           <section className="mb-8">
@@ -287,7 +261,7 @@ export function PackageDetails({ package: pkg }: PackageDetailsProps) {
           </section>
           <section className="mb-8">
             <h2 className="text-2xl font-semibold text-gray-900 mb-2">Reviews</h2>
-            <h3 className="text-lg text-gray-700 mb-4">Reviews for {pkg.title}</h3>
+            <h3 className="text-lg text-gray-700 mb-4">Reviews for {pkg.name}</h3>
             <div className="flex items-center gap-4 mb-6">
               <div className="flex items-center gap-1">
                 {[1, 2, 3, 4, 5].map((star) => (

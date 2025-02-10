@@ -8,85 +8,49 @@ import { SearchProvider } from "@/contexts/search-context"
 import { FavoritesProvider } from "@/contexts/favorites-context"
 import { ChevronLeft } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { Space } from "@/interfaces/space"
 
-// Updated mock data to include bookingType
-const packageData = {
-  id: 1,
-  title: "Sleek Downtown Office Suite",
-  description:
-    "Experience productivity in our modern downtown office suite. Perfect for small teams or individual professionals, this space offers a blend of style and functionality in the heart of the city.",
-  images: [
-    "/placeholder.svg?height=600&width=800",
-    "/placeholder.svg?height=600&width=800",
-    "/placeholder.svg?height=600&width=800",
-  ],
-  videos: [
-    {
-      url: "/placeholder-video.mp4",
-      thumbnail: "/placeholder.svg?height=600&width=800",
-    },
-  ],
-  price: 75,
-  capacity: 20,
-  responseTime: "1 hr",
-  bookingType: "instant" as const,
-  location: "123 Main St, New York, NY 10001",
-  distance: "0.5 mi",
-  operatingHours: {
-    Monday: "24 hours",
-    Tuesday: "24 hours",
-    Wednesday: "24 hours",
-    Thursday: "24 hours",
-    Friday: "24 hours",
-    Saturday: "24 hours",
-    Sunday: "24 hours",
-  },
-  rating: 4.8,
-  amenities: [
-    "High-speed Wi-Fi",
-    "Ergonomic chairs",
-    "Standing desks",
-    "Conference room",
-    "Coffee machine",
-    "Printing services",
-    "Bike storage",
-    "Shower facilities",
-  ],
-  host: {
-    name: "Sarah Johnson",
-    image: "/placeholder.svg?height=100&width=100",
-    responseRate: 98,
-    avgResponseTime: "30 minutes",
-    isSuperhost: true,
-  },
-  cancellationPolicy: "Flexible - Free cancellation up to 24 hours before the booking",
-  houseRules: [
-    "No smoking",
-    "No pets",
-    "No parties or events",
-    "Check-in time is 9AM - 5PM",
-    "Checkout by 5PM",
-    "Quiet hours 9PM - 7AM",
-  ],
-}
+const apiURL = "http://localhost:4000"
 
 export default function PackageDetailsPage() {
   const [isFilterOpen, setIsFilterOpen] = useState(false)
-  const [packageDetails, setPackageDetails] = useState<typeof packageData | null>(null)
+  const [packageDetails, setPackageDetails] = useState<Space | null>(null)
+  const [amenities, setAmenities] = useState<string[]>([])
   const [error, setError] = useState<string | null>(null)
   const params = useParams()
 
   useEffect(() => {
-    try {
-      // In a real app, you would fetch the package details here based on the ID
-      console.log("Fetching package details for ID:", params.id)
-      // For now, we'll just use our mock data
-      setPackageDetails(packageData)
-      setError(null)
-    } catch (err) {
-      setError("Failed to load package details")
-      console.error("Error loading package:", err)
+    const fetchPackageDetails = async () => {
+      try {
+        const response = await fetch(`${apiURL}/space/${params.id}`, { method: 'GET' })
+        if (!response.ok) {
+          throw new Error("Failed to load package details")
+        }
+        const data = await response.json()
+        setPackageDetails(data)
+        setError(null)
+      } catch (err) {
+        setError("Failed to load package details")
+        console.error("Error loading package:", err)
+      }
     }
+
+    const fetchAmenities = async () => {
+      try {
+        // const response = await fetch(`${apiURL}/space-amenity?spaceId=${params.id}`, { method: 'GET' })
+        const response = await fetch(`${apiURL}/space-amenity?spaceId=224`, { method: 'GET' })
+        if (!response.ok) {
+          throw new Error("Failed to load amenities")
+        }
+        const data = await response.json()
+        setAmenities(data.data.map((item: any) => item.amenity.name))
+      } catch (err) {
+        console.error("Error loading amenities:", err)
+      }
+    }
+
+    fetchPackageDetails()
+    fetchAmenities()
   }, [params.id])
 
   if (error) {
@@ -145,7 +109,7 @@ export default function PackageDetailsPage() {
                 Back
               </Button>
             </div>
-            <PackageDetails package={packageDetails} />
+            <PackageDetails package={{ ...packageDetails, amenities }} />
           </main>
         </div>
       </FavoritesProvider>
