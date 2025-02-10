@@ -5,7 +5,7 @@ import { Header } from "@/components/header"
 import { Filters } from "@/components/filters"
 import { SpaceCard } from "@/components/space-card"
 import { MapView } from "@/components/map-view"
-import { SearchProvider } from "@/contexts/search-context"
+import { SearchProvider, useSearch } from "@/contexts/search-context"
 import { FavoritesProvider, useFavorites } from "@/contexts/favorites-context"
 import { Button } from "@/components/ui/button"
 import {
@@ -23,7 +23,6 @@ import {
   ChevronRight,
 } from "lucide-react"
 import { SecondaryHeader } from "@/components/secondary-header"
-import { useSearch } from "@/contexts/search-context"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Error } from "@/components/ui/error"
 import {
