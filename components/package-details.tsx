@@ -22,12 +22,33 @@ export function PackageDetails({ package: pkg, description }: Readonly<PackageDe
   const scrollContainerRef = useRef<HTMLDivElement>(null)
   const [isOpen, setIsOpen] = useState(false)
   const router = useRouter()
+  const [relatedPackages, setRelatedPackages] = useState<Space[]>([])
+  const apiURL = "http://localhost:4000"
 
   useEffect(() => {
     const now = new Date()
     const currentHour = now.getHours()
     setIsOpen(currentHour >= 9 && currentHour < 17) 
   }, [])
+
+  useEffect(() => {
+    const fetchRelatedPackages = async () => {
+      try {
+        const response = await fetch(`${apiURL}/space?venueId=${pkg.venue.id}`, { method: 'GET' })
+        console.log("response for related package:", response)
+        if (!response.ok) {
+          throw new Error("Failed to load related packages")
+        }
+        const data = await response.json()
+        const filteredPackages = data.data.filter((relatedPackage: Space) => relatedPackage.id !== pkg.id)
+        setRelatedPackages(filteredPackages)
+      } catch (err) {
+        console.error("Error loading related packages:", err)
+      }
+    }
+
+    fetchRelatedPackages()
+  }, [pkg.venue.id, pkg.id])
 
   const defaultMedia = [
     { type: "video", url: "/media-gallery/placeholder-video.mp4", thumbnail: "/media-gallery/sample-video-thumbnail.jpg" },
@@ -206,22 +227,35 @@ export function PackageDetails({ package: pkg, description }: Readonly<PackageDe
                 className="flex space-x-4 mb-6 overflow-x-auto scrollbar-hide"
                 onScroll={handleScroll}
               >
-                {[
-                  "All",
-                  "Office Space",
-                  "Meeting Rooms",
-                  "Event Space",
-                  "Coworking",
-                  "Conference Rooms",
-                  "Training Rooms",
-                ].map((spaceType) => (
-                  <button
-                    key={spaceType}
-                    className="px-4 py-2 text-sm font-medium rounded-full bg-gray-100 text-gray-800 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition-colors whitespace-nowrap my-1"
-                    onClick={() => console.log(`Selected space type: ${spaceType}`)}
-                  >
-                    {spaceType}
-                  </button>
+                {relatedPackages.map((relatedPackage) => (
+                  <div key={relatedPackage.id} className="flex-shrink-0 w-64 group p-2">
+                    <div className="bg-white border border-gray-200 rounded-lg hover:shadow-md transition-all duration-300 ease-in-out hover:transform hover:scale-105 group-hover:ring-2 group-hover:ring-blue-200 p-0.5">
+                      <div className="rounded-lg overflow-hidden">
+                        <div className="relative h-40">
+                          <Image
+                            src={relatedPackage.photos[0]?.url || "/placeholder.svg"}
+                            alt={relatedPackage.name}
+                            layout="fill"
+                            objectFit="cover"
+                          />
+                        </div>
+                        <div className="p-4 space-y-1">
+                          <h3 className="font-medium text-gray-900 line-clamp-1">{relatedPackage.name}</h3>
+                          <div className="flex items-center text-gray-600 text-xs gap-1">
+                            <MapPin className="h-4 w-4" />
+                            <span>2 miles away</span>
+                          </div>
+                          <div className="flex items-center text-gray-600 text-xs gap-1">
+                            <Clock className="h-3 w-3" />
+                            <span>{relatedPackage.operatingHours}</span>
+                          </div>
+                          <div className="flex items-center justify-between pt-1">
+                            <div className="font-medium">From US${relatedPackage.price}/hr</div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 ))}
               </div>
               {showRightArrow && (
@@ -232,40 +266,6 @@ export function PackageDetails({ package: pkg, description }: Readonly<PackageDe
                   <ChevronRight className="h-6 w-6 text-gray-600" />
                 </button>
               )}
-            </div>
-            <div className="relative pt-4">
-              <div className="flex overflow-x-auto pb-24 md:pb-4 -mx-4 px-4 space-x-4 scrollbar-hide">
-                {[1, 2, 3, 4, 5].map((index) => (
-                  <div key={index} className="flex-shrink-0 w-64 group p-2">
-                    <div className="bg-white border border-gray-200 rounded-lg hover:shadow-md transition-all duration-300 ease-in-out hover:transform hover:scale-105 group-hover:ring-2 group-hover:ring-blue-200 p-0.5">
-                      <div className="rounded-lg overflow-hidden">
-                        <div className="relative h-40">
-                          <Image
-                            src={`/placeholder.svg?height=160&width=256`}
-                            alt={`Related Package ${index}`}
-                            layout="fill"
-                            objectFit="cover"
-                          />
-                        </div>
-                        <div className="p-4 space-y-1">
-                          <h3 className="font-medium text-gray-900 line-clamp-1">Related Package {index}</h3>
-                          <div className="flex items-center text-gray-600 text-xs gap-1">
-                            <MapPin className="h-4 w-4" />
-                            <span>0.5 miles away</span>
-                          </div>
-                          <div className="flex items-center text-gray-600 text-xs gap-1">
-                            <Clock className="h-3 w-3" />
-                            <span>9:00 AM - 5:00 PM</span>
-                          </div>
-                          <div className="flex items-center justify-between pt-1">
-                            <div className="font-medium">From US${50 + index * 10}/hr</div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
             </div>
           </section>
           <section className="mb-8">
