@@ -281,74 +281,74 @@ export function Filters({ isOpen, onClose }: FiltersProps) {
             <Switch defaultChecked className="data-[state=checked]:bg-blue-600" />
           </div>
 
-          <div className="mt-6">
+            {/* <div className="mt-6">
             <h3 className="text-sm font-medium text-gray-700">CAPACITY</h3>
             <Select defaultValue="any">
               <SelectTrigger className="mt-2 h-10 w-full rounded-lg border-gray-300 bg-white">
-                <SelectValue placeholder="Select capacity" />
+              <SelectValue placeholder="Select capacity" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="any">Any</SelectItem>
-                <SelectItem value="1-10">1-10 people</SelectItem>
-                <SelectItem value="11-20">11-20 people</SelectItem>
-                <SelectItem value="21-50">21-50 people</SelectItem>
-                <SelectItem value="50+">50+ people</SelectItem>
+              <SelectItem value="any">Any</SelectItem>
+              <SelectItem value="1-10">1-10 people</SelectItem>
+              <SelectItem value="11-20">11-20 people</SelectItem>
+              <SelectItem value="21-50">21-50 people</SelectItem>
+              <SelectItem value="50+">50+ people</SelectItem>
               </SelectContent>
             </Select>
-          </div>
+            </div> */}
 
-          <div className="mt-6">
+            {/* <div className="mt-6">
             <h3 className="text-sm font-medium text-gray-700">AVAILABILITY</h3>
             <div className="mt-3 flex gap-4">
               <label className="flex items-center gap-2">
-                <input type="radio" name="availability" className="h-4 w-4 text-blue-600 focus:ring-blue-500" />
-                <span className="text-sm text-gray-700">24/7</span>
+              <input type="radio" name="availability" className="h-4 w-4 text-blue-600 focus:ring-blue-500" />
+              <span className="text-sm text-gray-700">24/7</span>
               </label>
               <label className="flex items-center gap-2">
-                <input type="radio" name="availability" className="h-4 w-4 text-blue-600 focus:ring-blue-500" />
-                <span className="text-sm text-gray-700">Weekdays</span>
+              <input type="radio" name="availability" className="h-4 w-4 text-blue-600 focus:ring-blue-500" />
+              <span className="text-sm text-gray-700">Weekdays</span>
               </label>
               <label className="flex items-center gap-2">
-                <input
-                  type="radio"
-                  name="availability"
-                  className="h-4 w-4 text-blue-600 focus:ring-blue-500"
-                  defaultChecked
-                />
-                <span className="text-sm text-gray-700">Weekends</span>
+              <input
+                type="radio"
+                name="availability"
+                className="h-4 w-4 text-blue-600 focus:ring-blue-500"
+                defaultChecked
+              />
+              <span className="text-sm text-gray-700">Weekends</span>
               </label>
             </div>
-          </div>
+            </div> */}
 
-          <div className="mt-6">
+            {/* <div className="mt-6">
             <h3 className="text-sm font-medium text-gray-700">PRICING</h3>
             <Select defaultValue="any">
               <SelectTrigger className="mt-2 h-10 w-full rounded-lg border-gray-300 bg-white">
-                <SelectValue placeholder="Select pricing" />
+              <SelectValue placeholder="Select pricing" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="any">Any</SelectItem>
-                <SelectItem value="low">$0-$50</SelectItem>
-                <SelectItem value="medium">$51-$200</SelectItem>
-                <SelectItem value="high">$201+</SelectItem>
+              <SelectItem value="any">Any</SelectItem>
+              <SelectItem value="low">$0-$50</SelectItem>
+              <SelectItem value="medium">$51-$200</SelectItem>
+              <SelectItem value="high">$201+</SelectItem>
               </SelectContent>
             </Select>
-          </div>
+            </div> */}
 
-          <div className="mt-6">
+            {/* <div className="mt-6">
             <h3 className="text-sm font-medium text-gray-700">LOCATION RADIUS</h3>
             <div className="mt-4">
               <Slider
-                defaultValue={[10]}
-                min={0}
-                max={50}
-                step={1}
-                onValueChange={(value) => setLocationRadius(value[0])}
-                className="[&_[role=slider]]:bg-white [&_[role=slider]]:border-blue-600 [&_[role=slider]]:shadow-blue-600/50 [&_[role=track]]:bg-blue-600"
+              defaultValue={[10]}
+              min={0}
+              max={50}
+              step={1}
+              onValueChange={(value) => setLocationRadius(value[0])}
+              className="[&_[role=slider]]:bg-white [&_[role=slider]]:border-blue-600 [&_[role=slider]]:shadow-blue-600/50 [&_[role=track]]:bg-blue-600"
               />
               <div className="mt-2 text-center text-sm text-gray-600">{`${locationRadius} miles`}</div>
             </div>
-          </div>
+            </div> */}
         </div>
       </div>
 
