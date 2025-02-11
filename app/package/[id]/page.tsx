@@ -97,7 +97,6 @@ export default function PackageDetailsPage() {
                 Back
               </Button>
             </div>
-            {console.log("Package description:", packageDetails?.description)}
             <PackageDetails package={packageDetails} description={packageDetails?.description} />
           </main>
         </div>

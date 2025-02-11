@@ -105,7 +105,7 @@ function HomePage() {
   const fetchSpaces = async (page: number) => {
     setLoading(true)
     try {
-      const brandId = 3
+      const brandId = 103
       const offset = (page - 1) * PAGE_SIZE
       const response = await fetch(`${apiURL}/space?status=Publish&offset=${offset}&limit=${PAGE_SIZE}&brandId=${brandId}`, { method: 'GET' })
       if (!response.ok) {

@@ -27,10 +27,6 @@ export function PackageDetails({ package: pkg, description }: Readonly<PackageDe
   const apiURL = "http://localhost:4000"
   const currency = pkg.venue.currency || 'USD'
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(price)
-  }
-
   useEffect(() => {
     const now = new Date()
     const currentHour = now.getHours()
@@ -235,7 +231,11 @@ export function PackageDetails({ package: pkg, description }: Readonly<PackageDe
                   onScroll={handleScroll}
                 >
                   {relatedPackages.map((relatedPackage) => (
-                    <div key={relatedPackage.id} className="flex-shrink-0 w-64 group p-2">
+                    <div
+                      key={relatedPackage.id}
+                      className="flex-shrink-0 w-64 group p-2 cursor-pointer"
+                      onClick={() => router.push(`/package/${relatedPackage.id}`)}
+                    >
                       <div className="bg-white border border-gray-200 rounded-lg hover:shadow-md transition-all duration-300 ease-in-out hover:transform hover:scale-105 group-hover:ring-2 group-hover:ring-blue-200 p-0.5">
                         <div className="rounded-lg overflow-hidden">
                           <div className="relative h-40">
