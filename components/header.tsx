@@ -47,13 +47,10 @@ export function Header({ setIsFilterOpen, showMap, setShowMap, spaceCount }: Hea
   const router = useRouter()
   const pathname = usePathname()
   const [profileImage, setProfileImage] = useState("/placeholder.svg")
-  const [userName, setUserName] = useState("Graham Beck")
+  const [userName, setUserName] = useState("")
   const [unreadNotifications, setUnreadNotifications] = useState(0)
   const [isLoggedIn, setIsLoggedIn] = useState(true)
-  const spaces = [
-    { id: 1, name: "Space 1" },
-    { id: 2, name: "Space 2" },
-  ] // Example spaces data
+
 
   useEffect(() => {
     const storedProfileImage = localStorage.getItem("profileImage")
@@ -232,10 +229,10 @@ export function Header({ setIsFilterOpen, showMap, setShowMap, spaceCount }: Hea
                 <CreditCard className="mr-2 h-4 w-4" />
                 <span>Payment Methods</span>
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => router.push("/my-team")}>
+                {/* <DropdownMenuItem onClick={() => router.push("/my-team")}>
                 <Users className="mr-2 h-4 w-4" />
                 <span>My Team</span>
-              </DropdownMenuItem>
+                </DropdownMenuItem> */}
               <DropdownMenuItem onClick={() => router.push("/profile")}>
                 <User className="mr-2 h-4 w-4" />
                 <span>Profile</span>
@@ -245,10 +242,10 @@ export function Header({ setIsFilterOpen, showMap, setShowMap, spaceCount }: Hea
                 <HelpCircle className="mr-2 h-4 w-4" />
                 <span>Help Center</span>
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => router.push("/tools")}>
+                {/* <DropdownMenuItem onClick={() => router.push("/tools")}>
                 <Grid className="mr-2 h-4 w-4" />
                 <span>Tools</span>
-              </DropdownMenuItem>
+                </DropdownMenuItem> */}
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => window.open("https://drop-desk.com/host", "_blank")}>
                 <FileText className="mr-2 h-4 w-4" />
