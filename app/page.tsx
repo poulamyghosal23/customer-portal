@@ -92,6 +92,7 @@ function HomePage() {
   const [touchEnd, setTouchEnd] = useState<number | null>(null)
   const [currentImageIndices, setCurrentImageIndices] = useState<{ [key: number]: number }>({})
   const [selectedSpaceId, setSelectedSpaceId] = useState<number | null>(null)
+  const [totalCount, setTotalCount] = useState(0)
   const router = useRouter()
   const cardRefs = useRef<Record<number, HTMLDivElement | null>>({})
   const observerRef = useRef<IntersectionObserver | null>(null)
@@ -104,8 +105,9 @@ function HomePage() {
   const fetchSpaces = async (page: number) => {
     setLoading(true)
     try {
-      const brandId = 103
-      const response = await fetch(`${apiURL}/space?status=Publish&page=${page}&limit=${PAGE_SIZE}&brandId=${brandId}`, { method: 'GET' })
+      const brandId = 3
+      const offset = (page - 1) * PAGE_SIZE
+      const response = await fetch(`${apiURL}/space?status=Publish&offset=${offset}&limit=${PAGE_SIZE}&brandId=${brandId}`, { method: 'GET' })
       if (!response.ok) {
         console.error("Failed to load spaces:", response)
       }
@@ -116,7 +118,6 @@ function HomePage() {
         const distance = calculateDistance(nycCenter.lat, nycCenter.lng, lat, lng)
         const operatingHours = `${formatTime(space.venue.accessHoursFrom)} - ${formatTime(space.venue.accessHoursTo)}`
         const spotsLeft = calculateSpotsLeft(space)
-        console.log("Calculated spots left returned: ", spotsLeft)
         const currency = space.venue.currency || 'USD'
         return {
           ...space,
@@ -126,8 +127,8 @@ function HomePage() {
           currency
         }
       })
+      setTotalCount(data.total)
       const totalCount = data.total
-      console.log(totalCount + " spaces returned")
       setSpaces((prevSpaces) => [...prevSpaces, ...spacesArray])
       setHasMore(spaces.length + spacesArray.length < totalCount)
     } catch (err) {
@@ -160,8 +161,6 @@ function HomePage() {
   )
 
   const loadMoreSpaces = () => {
-    setLoading(true)
-    setError(null)
     const nextPage = Math.ceil(spaces.length / PAGE_SIZE) + 1
     fetchSpaces(nextPage)
   }
@@ -250,7 +249,7 @@ function HomePage() {
       />
       <main className="flex-1 flex flex-col">
         <SecondaryHeader
-          spaceCount={spaces.length}
+          spaceCount={totalCount}
           locationSearch={locationSearch}
           showMap={showMap}
           setShowMap={setShowMap}
@@ -380,6 +379,7 @@ function HomePage() {
                   </div>
                 )
               })}
+              <div ref={lastSpaceElementRef} />
             </div>
             {loading && (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -395,11 +395,6 @@ function HomePage() {
             {loading && <p className="text-center mt-4">{t("homePage.loadingMore")}</p>}
             {!hasMore && <p className="text-center mt-4">{t("homePage.noMoreSpaces")}</p>}
             {error && <Error message={error} />}
-            {hasMore && !loading && (
-              <div className="text-center mt-4">
-                <Button onClick={loadMoreSpaces}>{t("Load More")}</Button>
-              </div>
-            )}
           </div>
 
           <div className={`w-full md:w-[45%] ${showMap ? "block" : "hidden md:block"}`}>
