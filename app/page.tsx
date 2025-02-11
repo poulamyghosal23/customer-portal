@@ -66,7 +66,6 @@ const formatTime = (time: string) => {
 }
 
 const calculateSpotsLeft = (space: any) => {
-  console.log("space ", space)
   if (space.quantityUnlimited) {
     return "Unlimited spots left"
   }
