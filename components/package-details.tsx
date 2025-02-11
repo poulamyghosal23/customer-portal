@@ -24,7 +24,7 @@ export function PackageDetails({ package: pkg, description }: Readonly<PackageDe
   const [isOpen, setIsOpen] = useState(false)
   const router = useRouter()
   const [relatedPackages, setRelatedPackages] = useState<Space[]>([])
-  const apiURL = "http://localhost:4000"
+  const apiURL = process.env.NEXT_PUBLIC_API_URL
   const currency = pkg.venue.currency || 'USD'
 
   useEffect(() => {

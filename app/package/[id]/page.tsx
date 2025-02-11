@@ -10,7 +10,7 @@ import { ChevronLeft } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Space } from "@/interfaces/space"
 
-const apiURL = "http://localhost:4000"
+const apiURL = process.env.NEXT_PUBLIC_API_URL
 
 export default function PackageDetailsPage() {
   const [isFilterOpen, setIsFilterOpen] = useState(false)

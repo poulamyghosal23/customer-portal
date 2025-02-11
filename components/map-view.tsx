@@ -179,7 +179,7 @@ export function MapView({
 }: MapViewProps) {
   const { isLoaded } = useJsApiLoader({
     id: "google-map-script",
-    googleMapsApiKey: "AIzaSyCJCpoarISphEvZfjnnUEBhgYDZcaIcARQ",
+    googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? "",
   })
 
   const [map, setMap] = useState<google.maps.Map | null>(null)

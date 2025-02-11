@@ -48,7 +48,7 @@ const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: numbe
   const toRad = (value: number) => (value * Math.PI) / 180
   const R = 3958.8 
   const dLat = toRad(lat2 - lat1)
-  const dLon = toRad(lon2 - lon1)
+  const dLon = toRad(lat2 - lon1)
   const a =
     Math.sin(dLat / 2) * Math.sin(dLat / 2) +
     Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
@@ -68,11 +68,9 @@ const formatTime = (time: string) => {
 const calculateSpotsLeft = (space: any) => {
   console.log("space ", space)
   if (space.quantityUnlimited) {
-    console.log("Unlimited spots left")
     return "Unlimited spots left"
   }
   const spotsLeft = space.quantity - space.usedQuantity
-  console.log("spots left: ", spotsLeft)
   return `${spotsLeft} spot${spotsLeft !== 1 ? "s" : ""} left`
 }
 
@@ -93,19 +91,35 @@ function HomePage() {
   const [currentImageIndices, setCurrentImageIndices] = useState<{ [key: number]: number }>({})
   const [selectedSpaceId, setSelectedSpaceId] = useState<number | null>(null)
   const [totalCount, setTotalCount] = useState(0)
+  const [brandId, setBrandId] = useState<number | null>(null)
   const router = useRouter()
   const cardRefs = useRef<Record<number, HTMLDivElement | null>>({})
   const observerRef = useRef<IntersectionObserver | null>(null)
   const initialLoad = useRef(true)
 
   const observer = useRef<IntersectionObserver | null>(null)
-  // const apiURL = "https://dev-api.devhz.dropdesk.net"
-  const apiURL = "http://localhost:4000"
+  const apiURL = process.env.NEXT_PUBLIC_API_URL
+
+  const fetchBrandId = async () => {
+    try {
+      const brandDomain = process.env.NEXT_PUBLIC_BRAND_DOMAIN
+      // window.location.host.split('.')[0]
+      const queryParam = brandDomain === 'app' ? 'name=DropDesk' : `domain=${brandDomain}`;
+      const response = await fetch(`${apiURL}/brand?${queryParam}`, { method: 'GET' })
+      if (!response.ok) {
+        console.error("Failed to load brand:", response)
+      }
+      const data = await response.json().then((data) => data.data[0])
+      setBrandId(data.id)
+    } catch (err) {
+      console.error("Failed to load brand:", err)
+    }
+  }
 
   const fetchSpaces = async (page: number) => {
+    if (!brandId) return
     setLoading(true)
     try {
-      const brandId = 103
       const offset = (page - 1) * PAGE_SIZE
       const response = await fetch(`${apiURL}/space?status=Publish&offset=${offset}&limit=${PAGE_SIZE}&brandId=${brandId}`, { method: 'GET' })
       if (!response.ok) {
@@ -140,11 +154,15 @@ function HomePage() {
   }
 
   useEffect(() => {
-    if (initialLoad.current) {
+    fetchBrandId()
+  }, [])
+
+  useEffect(() => {
+    if (initialLoad.current && brandId) {
       fetchSpaces(1)
       initialLoad.current = false
     }
-  }, [])
+  }, [brandId])
 
   const lastSpaceElementRef = useCallback(
     (node: HTMLDivElement | null) => {
