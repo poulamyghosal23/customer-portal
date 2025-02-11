@@ -49,10 +49,12 @@ export function Header({ setIsFilterOpen, showMap, setShowMap, spaceCount }: Hea
   const [profileImage, setProfileImage] = useState("/placeholder.svg")
   const [userName, setUserName] = useState("")
   const [unreadNotifications, setUnreadNotifications] = useState(0)
-  const [isLoggedIn, setIsLoggedIn] = useState(true)
-
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
 
   useEffect(() => {
+    // Perform logout on first load
+    handleLogout()
+
     const storedProfileImage = localStorage.getItem("profileImage")
     const storedUserName = localStorage.getItem("userName")
     if (storedProfileImage) setProfileImage(storedProfileImage)
@@ -229,10 +231,6 @@ export function Header({ setIsFilterOpen, showMap, setShowMap, spaceCount }: Hea
                 <CreditCard className="mr-2 h-4 w-4" />
                 <span>Payment Methods</span>
               </DropdownMenuItem>
-                {/* <DropdownMenuItem onClick={() => router.push("/my-team")}>
-                <Users className="mr-2 h-4 w-4" />
-                <span>My Team</span>
-                </DropdownMenuItem> */}
               <DropdownMenuItem onClick={() => router.push("/profile")}>
                 <User className="mr-2 h-4 w-4" />
                 <span>Profile</span>
@@ -242,10 +240,6 @@ export function Header({ setIsFilterOpen, showMap, setShowMap, spaceCount }: Hea
                 <HelpCircle className="mr-2 h-4 w-4" />
                 <span>Help Center</span>
               </DropdownMenuItem>
-                {/* <DropdownMenuItem onClick={() => router.push("/tools")}>
-                <Grid className="mr-2 h-4 w-4" />
-                <span>Tools</span>
-                </DropdownMenuItem> */}
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => window.open("https://drop-desk.com/host", "_blank")}>
                 <FileText className="mr-2 h-4 w-4" />
